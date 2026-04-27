@@ -9,6 +9,8 @@ class PostBase(BaseModel):
     platform: str
     scheduled_at: Optional[datetime] = None
     status: str = "draft"
+    series_id: Optional[int] = None
+    series_index: Optional[int] = None
 
 
 class PostCreate(PostBase):
@@ -20,6 +22,8 @@ class PostUpdate(BaseModel):
     platform: Optional[str] = None
     scheduled_at: Optional[datetime] = None
     status: Optional[str] = None
+    series_id: Optional[int] = None
+    series_index: Optional[int] = None
 
 
 class PostResponse(PostBase):

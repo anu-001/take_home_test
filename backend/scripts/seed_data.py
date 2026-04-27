@@ -18,6 +18,7 @@ from sqlalchemy.orm import sessionmaker
 from app.core.security import get_password_hash
 from app.models.user import User
 from app.models.post import Post
+from app.models.content_series import ContentSeries
 from app.core.database import Base
 
 # Use sync SQLite for script (same DB file as async app)
@@ -83,6 +84,50 @@ def main():
                 owner_id=user.id,
             )
             session.add(post)
+    
+     # create one content series per user with linked scheduled posts.
+    # to avoid clashing with random seed window schedule these in the future.
+    series_base = (now + timedelta(days=21)).replace(hour=10, minute=0, second=0, microsecond=0)
+    for idx, user in enumerate(users, start=1):
+        series_name = f"{user.full_name} Launch Series"
+        existing_series = (
+            session.query(ContentSeries)
+            .filter(ContentSeries.owner_id == user.id, ContentSeries.name == series_name)
+            .first()
+        )
+        if existing_series:
+            continue
+
+        platform = "linkedin" if idx % 2 else "instagram"
+        start_at = series_base + timedelta(days=idx)
+        cadence = "daily"
+        total_posts = 4
+
+        series = ContentSeries(
+            owner_id=user.id,
+            name=series_name,
+            platform=platform,
+            start_at=start_at,
+            cadence=cadence,
+            total_posts=total_posts,
+            status="draft",
+        )
+        session.add(series)
+        session.flush()
+
+        for step in range(1, total_posts + 1):
+            post = Post(
+                title=f"{series_name} #{step}",
+                platform=platform,
+                scheduled_at=start_at + timedelta(days=step - 1),
+                status="scheduled",
+                owner_id=user.id,
+                series_id=series.id,
+                series_index=step,
+            )
+            session.add(post)
+    
+    
     session.commit()
     print(f"Seeded {len(users)} users and posts into {DB_PATH}")
     print("Login with: alice@example.com / password123 (or bob@example.com, charlie@example.com)")
