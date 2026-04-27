@@ -1,14 +1,26 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { api, authApi, postsApi } from './client'
+import { api, authApi, postsApi, seriesApi } from "./client";
+
+function createStorageMock() {
+  const data = new Map();
+  return {
+    getItem: vi.fn((key) => data.get(key) ?? null),
+    setItem: vi.fn((key, value) => data.set(key, String(value))),
+    removeItem: vi.fn((key) => data.delete(key)),
+    clear: vi.fn(() => data.clear()),
+  };
+}
 
 describe('api', () => {
   const originalFetch = globalThis.fetch
+  const originalStorage = globalThis.localStorage;
   beforeEach(() => {
     globalThis.fetch = vi.fn()
+    globalThis.localStorage = createStorageMock();
   })
   afterEach(() => {
     globalThis.fetch = originalFetch
-    localStorage.clear()
+    globalThis.localStorage = originalStorage;
   })
 
   it('sends JSON body and Content-Type header', async () => {
@@ -149,3 +161,47 @@ describe('postsApi', () => {
     )
   })
 })
+
+describe("seriesApi", () => {
+  const originalFetch = globalThis.fetch;
+  beforeEach(() => {
+    globalThis.fetch = vi.fn();
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it("create sends POST with body", async () => {
+    globalThis.fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 1, name: "Launch Week" }),
+    });
+    await seriesApi.create({
+      name: "Launch Week",
+      platform: "linkedin",
+      cadence: "daily",
+      total_posts: 4,
+      start_at: "2026-05-01T10:00:00Z",
+      status: "draft",
+    });
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/series"),
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("generate sends POST to series generate route", async () => {
+    globalThis.fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 201,
+      json: async () => [],
+    });
+    await seriesApi.generate(12);
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/series/12/generate"),
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+});
+

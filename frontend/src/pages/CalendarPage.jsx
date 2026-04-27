@@ -27,7 +27,7 @@ export default function CalendarPage() {
           .filter((p) => p.scheduled_at)
           .map((p) => ({
             id: p.id,
-            title: p.title,
+            title: p.series_id ? `[S${p.series_id} #${p.series_index || "?"}] ${p.title}` : p.title,
             start: new Date(p.scheduled_at),
             end: new Date(new Date(p.scheduled_at).getTime() + 60 * 60 * 1000),
             resource: { platform: p.platform, status: p.status },

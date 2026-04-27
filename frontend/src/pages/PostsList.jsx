@@ -62,6 +62,7 @@ export default function PostsList() {
             <tr>
               <th>Title</th>
               <th>Platform</th>
+              <th>Series</th>
               <th>Scheduled</th>
               <th>Status</th>
               <th></th>
@@ -70,13 +71,18 @@ export default function PostsList() {
           <tbody>
             {posts.length === 0 ? (
               <tr>
-                <td colSpan={5}>No posts yet. <Link to="/posts/new">Create one</Link>.</td>
+                <td colSpan={6}>No posts yet. <Link to="/posts/new">Create one</Link>.</td>
               </tr>
             ) : (
               posts.map((p) => (
                 <tr key={p.id}>
                   <td>{p.title}</td>
                   <td><span className="platform">{p.platform}</span></td>
+                  <td>
+                    {p.series_id ? `Series #${p.series_id}${p.series_index 
+                      ? ` (${p.series_index})` 
+                      : ""}` : "—"}
+                    </td>
                   <td>
                     {p.scheduled_at
                       ? format(new Date(p.scheduled_at), "MMM d, yyyy HH:mm")
