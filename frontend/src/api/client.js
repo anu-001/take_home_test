@@ -1,8 +1,19 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
-function getToken() {
-  return localStorage.getItem("token");
+
+
+function storage() {
+  if (typeof window === "undefined") return null;
+  const store = window.localStorage;
+  if (!store || typeof store.getItem !== "function") return null;
+  return store;
 }
+
+function getToken() {
+  return storage()?.getItem("token") ?? null;
+}
+
+
 
 export async function api(endpoint, options = {}) {
   const token = getToken();
@@ -13,7 +24,7 @@ export async function api(endpoint, options = {}) {
   };
   const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
   if (res.status === 401) {
-    localStorage.removeItem("token");
+    storage()?.removeItem("token");
     window.location.href = "/login";
     throw new Error("Unauthorized");
   }
@@ -52,4 +63,19 @@ export const postsApi = {
   update: (id, data) =>
     api(`/posts/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   delete: (id) => api(`/posts/${id}`, { method: "DELETE" }),
+};
+
+
+export const seriesApi = {
+  list: () => api("/series"),
+  get: (id) => api(`/series/${id}`),
+  create: (data) =>
+    api("/series", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  generate: (id) =>
+    api(`/series/${id}/generate`, {
+      method: "POST",
+    }),
 };

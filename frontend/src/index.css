@@ -329,3 +329,16 @@ a:hover {
   padding: 2px 6px;
   font-size: 0.75rem;
 }
+
+.notice {
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.series-table-wrap {
+  margin-top: 1rem;
+}
